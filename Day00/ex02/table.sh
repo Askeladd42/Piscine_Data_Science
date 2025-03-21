@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# this is not a real script, just a list of command that will be done
+# in the terminal for the creation of the table in the Postgres database
 
 ### table creation in the Postgres database
 CREATE TABLE data_2022_oct (

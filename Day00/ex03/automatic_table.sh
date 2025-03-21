@@ -1,7 +1,13 @@
 #!/bin/bash
 
-# Directory containing the CSV files, to modify with the correct path
+# Directory containing the CSV files
 CSV_DIR="../../ressources/Piscine_DataScience/subject_D00/customer"
+
+# Database connection details, to be deleted when using the .env later on
+DB_NAME="postgres_db"
+DB_USER="plam"
+DB_HOST="piscineds"
+DB_PORT="5432:5432"
 
 # Loop through all CSV files in the directory
 for csv_file in "$CSV_DIR"/*.csv; do
@@ -10,19 +16,18 @@ for csv_file in "$CSV_DIR"/*.csv; do
     
     # Create the table using the extracted name
     echo "Creating table: $table_name"
-    
-    # Assuming you have a command or script to create the table from the CSV
-    # Replace 'create_table_command' with the actual command you use
-    CREATE TABLE "$table_name" (
+    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
+    CREATE TABLE IF NOT EXISTS \"$table_name\" (
         event_time TIMESTAMP,
         event_type VARCHAR(255),
         product_id INT,
         price FLOAT,
         user_id BIGINT,
         user_session UUID
-    )
-
+    );"
+    
     # Copy data from the CSV file to the table
     echo "Copying data to table: $table_name"
-    COPY "$table_name" FROM "$csv_file" DELIMITER ',' CSV HEADER
+    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "
+    COPY \"$table_name\" FROM '$csv_file' DELIMITER ',' CSV HEADER;"
 done
