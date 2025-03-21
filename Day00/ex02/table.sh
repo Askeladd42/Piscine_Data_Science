@@ -1,4 +1,4 @@
-# bash
+#!/bin/bash
 
 
 ### table creation in the Postgres database
