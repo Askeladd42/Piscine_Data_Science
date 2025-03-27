@@ -12,7 +12,7 @@ CSV_DIR="../../ressources/Piscine_DataScience/subject_D00/items"
 # DB_NAME="postgres_db"
 # DB_USER="plam"
 # DB_HOST="piscineds"
-# DB_PORT="5432:5432"
+# DB_PORT="5432"
 
 # CSV file path
 csv_file="$CSV_DIR/items.csv"

@@ -12,7 +12,7 @@ CSV_DIR="../../ressources/Piscine_DataScience/subject_D00/customer"
 # DB_NAME="postgres_db"
 # DB_USER="plam"
 # DB_HOST="piscineds"
-# DB_PORT="5432:5432"
+# DB_PORT="5432"
 
 # Loop through all CSV files in the directory
 for csv_file in "$CSV_DIR"/*.csv; do
