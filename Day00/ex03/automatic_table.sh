@@ -6,7 +6,7 @@ source ../../test.env
 set +o allexport
 
 # Directory containing the CSV files
-CSV_DIR="../../ressources/Piscine_DataScience/subject_D00/customer"
+CSV_DIR="../../ressources/Piscine_DataScience/D00/customer"
 
 # Database connection details, to be deleted when using the .env later on
 # DB_NAME="postgres_db"
