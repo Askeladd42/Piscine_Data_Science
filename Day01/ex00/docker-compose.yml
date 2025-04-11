@@ -11,6 +11,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./data:/data
+    networks:
+      - pg_network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -20,6 +22,11 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "8080:80"
+    networks:
+      - pg_network
 
 volumes:
   postgres_data:
+
+networks:
+  pg_network:
