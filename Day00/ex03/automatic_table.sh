@@ -8,11 +8,8 @@ set +o allexport
 # Directory containing the CSV files
 CSV_DIR="../../ressources/Piscine_DataScience/D00/customer"
 
-# Database connection details, to be deleted when using the .env later on
-DB_NAME="postgres_db"
-# DB_USER="plam"
-# DB_HOST="piscineds"
-# DB_PORT="5432"
+# Database container name
+DB_CONTAINER="postgres_db"
 
 # Loop through all CSV files in the directory
 for csv_file in "$CSV_DIR"/*.csv; do
@@ -21,7 +18,7 @@ for csv_file in "$CSV_DIR"/*.csv; do
 
     # Create the table using the extracted name
     echo "Creating table: $table_name"
-    docker exec -it "$DB_NAME" psql -U "$POSTGRES_USER" -h localhost -d "$POSTGRES_DB" -p "$POSTGRES_PORT" -c "
+    docker exec -it "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
     CREATE TABLE IF NOT EXISTS \"$table_name\" (
         event_time TIMESTAMP,
         event_type VARCHAR(255),
@@ -33,6 +30,7 @@ for csv_file in "$CSV_DIR"/*.csv; do
     
     # Copy data from the CSV file to the table
     echo "Copying data to table: $table_name"
-    docker exec -it "$DB_NAME" psql -U "$POSTGRES_USER" -h localhost -d "$POSTGRES_DB" -p "$POSTGRES_PORT" -c "
-    COPY \"$table_name\" FROM '$csv_file' DELIMITER ',' CSV HEADER;"
+    docker cp "$csv_file" "$DB_CONTAINER:/tmp/$(basename "$csv_file")"
+    docker exec -it "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
+    COPY \"$table_name\" FROM '/tmp/$(basename "$csv_file")' DELIMITER ',' CSV HEADER;"
 done
