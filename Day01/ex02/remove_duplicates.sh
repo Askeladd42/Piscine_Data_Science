@@ -10,7 +10,7 @@ table_name="customers"
 
 # Remove duplicate rows from the "customers" table
 echo "Removing duplicate rows from table: $table_name"
-psql -h "$POSTGRES_DB" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_NAME" -c "
+docker exec -it "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 DELETE FROM \"$table_name\"
 WHERE ctid NOT IN (                                     # ctid is a system column that uniquely identifies rows in a table
     SELECT MIN(ctid)

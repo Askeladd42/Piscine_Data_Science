@@ -10,7 +10,7 @@ table_name="customers"
 
 # Fusion of the "customers" table with the "items" table in the "customers" table
 echo "Fusion of the $table_name table with the items table"
-psql -h "$POSTGRES_DB" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_NAME" -c "
+docker exec -it "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 UPDATE \"$table_name\"
 SET items = (
     SELECT items
