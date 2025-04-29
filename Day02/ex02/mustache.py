@@ -1,6 +1,11 @@
 import psycopg2
 import pandas as pd
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv("../../test.env")
 
 def fetch_purchase_data():
     """
@@ -9,11 +14,11 @@ def fetch_purchase_data():
     try:
         # Connect to the database
         connection = psycopg2.connect(
-            host="piscineds",  # Replace with your database host
-            port="5432",       # Replace with your database port
-            database="postgres_db",  # Replace with your database name
-            user="plam",       # Replace with your database user
-            password="mysecretpassword"  # Replace with your database password
+            host=os.getenv("POSTGRES_HOST"),  # Database host
+            port=os.getenv("POSTGRES_PORT"),  # Database port
+            database=os.getenv("POSTGRES_DB"),  # Database name
+            user=os.getenv("POSTGRES_USER"),  # Database user
+            password=os.getenv("POSTGRES_PASSWORD")  # Database password
         )
         cursor = connection.cursor()
 
