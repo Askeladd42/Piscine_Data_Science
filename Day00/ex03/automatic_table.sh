@@ -2,11 +2,11 @@
 
 # Load environment variables from test.env, to modify if necessary
 set -o allexport
-source ../../test.env
+source /home/plam/sgoinfre/test.env    # Adjust the path to your .env file
 set +o allexport
 
 # Directory containing the CSV files
-CSV_DIR="../../../ressources/Piscine_Data_Science/customer"
+CSV_DIR="../../../subject/customer"    # Adjust the path to your CSV files
 
 # Database container name
 DB_CONTAINER="postgres_db"

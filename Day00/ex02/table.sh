@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS data_2022_oct (
 );
 
 ### Copy data from the CSV file to the table
-COPY data_2022_oct FROM 'data_2022_oct.csv' DELIMITER ',' CSV HEADER
+\copy data_2022_oct FROM '/data/data_2022_oct.csv' DELIMITER ',' CSV HEADER;
