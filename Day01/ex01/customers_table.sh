@@ -2,7 +2,7 @@
 
 # Load environment variables from test.env, to modify if necessary
 set -o allexport
-source ../../test.env
+source /home/plam/sgoinfre/test.env    # Adjust the path to your .env file
 set +o allexport
 
 # Directory containing the CSV files

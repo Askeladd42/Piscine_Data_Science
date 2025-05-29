@@ -2,7 +2,7 @@
 
 # Load environment file
 set -o allexport
-source ../../test.env
+source /home/plam/sgoinfre/test.env    # Adjust the path to your .env file
 set +o allexport
 
 # Table name
