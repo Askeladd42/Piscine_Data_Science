@@ -8,7 +8,7 @@ set +o allexport
 table_name="customers"
 batch_size=10000    # batch treatment size because of the size of the table
 
-# Get columns except event_time
+# Get columns except event_time (quoted, comma-separated)
 columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
     "SELECT string_agg(quote_ident(column_name), ', ') FROM information_schema.columns WHERE table_name = '$table_name' AND column_name <> 'event_time';")
 
@@ -16,6 +16,14 @@ if [ -z "$columns" ]; then
     echo "No columns found for table $table_name. Aborting."
     exit 1
 fi
+
+# Build index columns (unquoted, comma-separated)
+index_columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
+    "SELECT string_agg(column_name, ', ') FROM information_schema.columns WHERE table_name = '$table_name' AND column_name <> 'event_time';")
+
+# Create functional index for deduplication
+docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "CREATE INDEX IF NOT EXISTS idx_customers_dedup ON \"$table_name\" ($index_columns, date_trunc('second', event_time));"
 
 # Remove near-duplicate rows based on all columns except event_time
 # ctid is used to uniquely identify rows in PostgreSQL
