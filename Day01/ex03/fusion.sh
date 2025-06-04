@@ -6,7 +6,8 @@ set +o allexport
 
 table_name="customers"
 
-# Ajoute les colonnes si elles n'existent pas déjà
+# Add columns to the customers table if they do not exist
+DB_CONTAINER="postgres_db"
 for col in "category_id BIGINT" "category_code VARCHAR(255)" "brand VARCHAR(255)"; do
     name=$(echo $col | cut -d' ' -f1)
     type=$(echo $col | cut -d' ' -f2-)
@@ -23,7 +24,8 @@ for col in "category_id BIGINT" "category_code VARCHAR(255)" "brand VARCHAR(255)
     \$\$;"
 done
 
-# Met à jour customers avec les infos de items (jointure sur product_id)
+# Update the customers table with data from the items table
+echo "Updating the $table_name table with data from the items table"
 docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 UPDATE \"$table_name\" AS c
 SET
