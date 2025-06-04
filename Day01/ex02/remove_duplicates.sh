@@ -58,3 +58,8 @@ while :; do
 done
 
 echo "All near-duplicate rows removed from table: $table_name"
+
+# delete the index created for deduplication
+echo "Dropping index idx_customers_dedup from table: $table_name"
+docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
+    "DROP INDEX IF EXISTS idx_customers_dedup;"
