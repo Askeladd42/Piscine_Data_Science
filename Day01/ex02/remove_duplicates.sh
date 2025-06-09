@@ -83,7 +83,7 @@ while :; do
         )
         DELETE FROM \"$table_name\" WHERE ctid IN (SELECT ctid FROM to_delete)
         RETURNING 1;
-    " | grep -c 1)
+    " | grep '^1$' | wc -l)
 
     if [ "$deleted" -eq 0 ]; then
         echo "No more duplicates to delete."
