@@ -42,13 +42,20 @@ SELECT COUNT(*) FROM (
 ) t
 WHERE t.rn > 1;"
 
-# Prepare the COALESCE statement for handling NULL values for patitioning
+# Prepare the COALESCE statement for handling ANY NULL-type values for patitioning
 echo "Preparing COALESCE statement for NULL handling in table: $table_name"
 coalesce_columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "
 SELECT string_agg(
     CASE data_type
         WHEN 'integer' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
         WHEN 'bigint' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        WHEN 'double precision' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        WHEN 'numeric' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        WHEN 'real' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        WHEN 'character varying' THEN 'COALESCE(' || quote_ident(column_name) || ',''__NULL__'')'
+        WHEN 'text' THEN 'COALESCE(' || quote_ident(column_name) || ',''__NULL__'')'
+        WHEN 'date' THEN 'COALESCE(' || quote_ident(column_name) || ',''1900-01-01'')'
+        WHEN 'timestamp without time zone' THEN 'COALESCE(' || quote_ident(column_name) || ',''1900-01-01 00:00:00'')'
         ELSE 'COALESCE(' || quote_ident(column_name) || ',''__NULL__'')'
     END, ', '
 )
