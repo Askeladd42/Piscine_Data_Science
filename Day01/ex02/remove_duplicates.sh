@@ -9,6 +9,7 @@ table_name="customers"
 batch_size=10000    # batch treatment size because of the size of the table
 
 # Get columns except event_time (quoted, comma-separated)
+echo "Fetching columns for table: $table_name"
 columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
     "SELECT string_agg(quote_ident(column_name), ', ') FROM information_schema.columns WHERE table_name = '$table_name' AND column_name <> 'event_time';")
 
@@ -18,6 +19,7 @@ if [ -z "$columns" ]; then
 fi
 
 # Build index columns (unquoted, comma-separated)
+echo "Building index columns for table: $table_name"
 index_columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
     "SELECT string_agg(column_name, ', ') FROM information_schema.columns WHERE table_name = '$table_name' AND column_name <> 'event_time';")
 
