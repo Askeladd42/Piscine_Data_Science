@@ -8,6 +8,8 @@ table_name="customers"
 
 # Add columns to the customers table if they do not exist
 DB_CONTAINER="postgres_db"
+
+echo "Adding columns to the $table_name table if they do not exist"
 for col in "category_id BIGINT" "category_code VARCHAR(255)" "brand VARCHAR(255)"; do
     name=$(echo $col | cut -d' ' -f1)
     type=$(echo $col | cut -d' ' -f2-)
@@ -32,7 +34,12 @@ SET
     category_id = i.category_id,
     category_code = i.category_code,
     brand = i.brand
-FROM items i
+FROM (
+    SELECT DISTINCT ON (product_id)
+        product_id, category_id, category_code, brand
+    FROM items
+    ORDER BY product_id, category_id DESC, category_code DESC, brand DESC
+) i
 WHERE c.product_id = i.product_id;
 "
 
