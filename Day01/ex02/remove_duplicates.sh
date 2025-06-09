@@ -30,26 +30,43 @@ docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
 # Remove near-duplicate rows based on all columns except event_time
 # ctid is used to uniquely identify rows in PostgreSQL
 
+echo "Counting near-duplicate rows in table: $table_name"
+docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
+SELECT COUNT(*) FROM (
+    SELECT
+        ROW_NUMBER() OVER (
+            PARTITION BY $columns, date_trunc('second', event_time)
+            ORDER BY event_time
+        ) AS rn
+    FROM \"$table_name\"
+) t
+WHERE t.rn > 1;"
+
+# Prepare the COALESCE statement for handling NULL values for patitioning
+echo "Preparing COALESCE statement for NULL handling in table: $table_name"
+coalesce_columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
+    "SELECT string_agg('COALESCE(' || quote_ident(column_name) || ',''__NULL__'')', ', ') FROM information_schema.columns WHERE table_name = '$table_name' AND column_name <> 'event_time';")
+
 echo "Removing near-duplicate rows from table: $table_name"
 while :; do
     deleted=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "
-        WITH to_delete AS (
-            SELECT ctid
-            FROM (
-                SELECT
-                    ctid,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY $columns, date_trunc('second', event_time)
-                        ORDER BY event_time
-                    ) AS rn
-                FROM \"$table_name\"
-            ) t
-            WHERE t.rn > 1
-            LIMIT $batch_size
-        )
-        DELETE FROM \"$table_name\" WHERE ctid IN (SELECT ctid FROM to_delete)
-        RETURNING 1;
-    " | wc -l)
+    WITH to_delete AS (
+        SELECT ctid
+        FROM (
+            SELECT
+                ctid,
+                ROW_NUMBER() OVER (
+                    PARTITION BY $coalesce_columns, date_trunc('second', event_time)
+                    ORDER BY event_time
+                ) AS rn
+            FROM \"$table_name\"
+        ) t
+        WHERE t.rn > 1
+        LIMIT $batch_size
+    )
+    DELETE FROM \"$table_name\" WHERE ctid IN (SELECT ctid FROM to_delete)
+    RETURNING 1;
+" | grep -c 1)
 
     if [ "$deleted" -eq 0 ]; then
         echo "No more duplicates to delete."
