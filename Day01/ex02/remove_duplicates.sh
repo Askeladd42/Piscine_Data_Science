@@ -44,8 +44,17 @@ WHERE t.rn > 1;"
 
 # Prepare the COALESCE statement for handling NULL values for patitioning
 echo "Preparing COALESCE statement for NULL handling in table: $table_name"
-coalesce_columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
-    "SELECT string_agg('COALESCE(' || quote_ident(column_name) || ',''__NULL__'')', ', ') FROM information_schema.columns WHERE table_name = '$table_name' AND column_name <> 'event_time';")
+coalesce_columns=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "
+SELECT string_agg(
+    CASE data_type
+        WHEN 'integer' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        WHEN 'bigint' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        ELSE 'COALESCE(' || quote_ident(column_name) || ',''__NULL__'')'
+    END, ', '
+)
+FROM information_schema.columns
+WHERE table_name = '$table_name' AND column_name <> 'event_time';
+")
 
 echo "Removing near-duplicate rows from table: $table_name"
 while :; do
