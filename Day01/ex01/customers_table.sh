@@ -8,7 +8,7 @@ set +o allexport
 # Table name for the joined data
 joined_table="customers"
 
-# Crée la table "customers" with the first table found structure
+# Create "customers" table with the first table found structure
 first_table=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c \
     "SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'data_202%_' ORDER BY table_name LIMIT 1;")
 
