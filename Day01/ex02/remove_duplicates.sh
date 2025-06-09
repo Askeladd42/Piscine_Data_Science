@@ -52,6 +52,7 @@ SELECT string_agg(
         WHEN 'double precision' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
         WHEN 'numeric' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
         WHEN 'real' THEN 'COALESCE(' || quote_ident(column_name) || ', -1)'
+        WHEN 'uuid' THEN 'COALESCE(' || quote_ident(column_name) || ',''00000000-0000-0000-0000-000000000000'')'
         WHEN 'character varying' THEN 'COALESCE(' || quote_ident(column_name) || ',''__NULL__'')'
         WHEN 'text' THEN 'COALESCE(' || quote_ident(column_name) || ',''__NULL__'')'
         WHEN 'date' THEN 'COALESCE(' || quote_ident(column_name) || ',''1900-01-01'')'
