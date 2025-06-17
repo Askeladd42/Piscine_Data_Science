@@ -54,7 +54,7 @@ else
     echo "Tous les doublons de product_id sont identiques sur toutes les colonnes."
 fi
 
-# Créer une table normale (pas TEMP)
+# Create a "temporary" table items_nodup to hold unique product_id entries
 echo "Creating a temporary table items_nodup to hold unique product_id entries"
 docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 DROP TABLE IF EXISTS items_nodup;
@@ -64,7 +64,7 @@ FROM items
 ORDER BY product_id;
 "
 
-# Update avec la table items_nodup
+# Update with items_nodup table
 echo "Updating the $table_name table with data from the items table (no duplicates)"
 docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 UPDATE \"$table_name\" AS c
@@ -76,7 +76,7 @@ FROM items_nodup i
 WHERE c.product_id = i.product_id;
 "
 
-# Nettoyage de la table temporaire
+# Cleaning up the temporary items_nodup table
 echo "Cleaning up the temporary items_nodup table"
 docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "DROP TABLE IF EXISTS items_nodup;"
 
