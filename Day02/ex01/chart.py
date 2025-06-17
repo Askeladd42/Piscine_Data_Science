@@ -51,35 +51,39 @@ def create_charts(df):
     """
     Create 3 charts based on the purchase data.
     """
-    # Chart 1: Number of customers per month
-    df["purchase"] = 1  # Create a column to count purchases
-    df["month"] = df["event_time"].dt.to_period("M")  # Extract month from event_time
-    df["month"] = df["month"].astype(str)  # Convert Period to string for plotting
-    df = df.groupby("month").agg({"purchase": "sum", "price": "mean"}).reset_index()
-    df["month"] = pd.to_datetime(df["month"])  # Convert month back to datetime for plotting
-    df["month"] = df["month"].dt.strftime('%Y-%m')  # Format month for better readability
-    # df["price"] = df["price"].round(2)  # Round price to 2 decimal places
-    df = df.sort_values("month")  # Sort by month for plotting
+    # Chart 1: Number of customers per month with a line chart
+    monthly_customers = df.groupby("month")["purchase"].sum().reset_index()
+    plt.figure(figsize=(10, 6))
+    plt.plot(monthly_customers["month"], monthly_customers["purchase"], marker="o")
     plt.xlabel("Month")
     plt.ylabel("Number of customers")
-    df.plot(x="month", y="purchase", kind="bar", figsize=(10, 6), title="Number of Customers per Month")
+    plt.title("Number of Customers per Month")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
 
-    # Chart 2: Number of purchases per month
-    monthly_counts = df.groupby("month")["price"].count()
-    monthly_counts.plot(kind="line", marker="o", figsize=(10, 6), title="Sales per month")
-    plt.xlabel("month")
-    plt.ylabel("total sales in million of Altairian Dollars")
+    # Chart 2: Number of purchases per month with an histogram chart
+    monthly_purchases = df.groupby("month")["price"].count().reset_index()
+    plt.figure(figsize=(10, 6))
+    plt.bar(monthly_purchases["month"], monthly_purchases["price"])
+    plt.xlabel("Month")
+    plt.ylabel("Total sales in milliom of A")
+    plt.title("Number of Purchases per Month")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
 
-    # Chart 3: Distribution of purchase prices
-    df["price"].plot(kind="hist", bins=20, figsize=(10, 6), title="Distribution of Purchase Prices")
-    plt.xlabel("month")
-    plt.ylabel("Average spend/customer in Altairian Dollars")
+    # Chart 3: Distribution of purchase prices with a stacked area chart
+    df["price"] = df["price"].round(2)
+    price_bins = pd.cut(df["price"], bins=10)
+    stacked = df.groupby(["month", price_bins]).size().unstack(fill_value=0)
+    stacked = stacked.sort_index()
+    plt.figure(figsize=(10, 6))
+    stacked.plot(kind="area", stacked=True, colormap="tab20", alpha=0.7)
+    plt.xlabel("Month")
+    plt.ylabel("Average spend/customers in A")
+    plt.title("Stacked Area Chart: Distribution of Purchase Prices by Month")
+    plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
 
