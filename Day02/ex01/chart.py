@@ -53,27 +53,27 @@ def create_charts(df):
     """
     # Chart 1: Total purchases per month
     df["month"] = df["event_time"].dt.to_period("M")
-    monthly_totals = df.groupby("month")["price"].sum()
-    monthly_totals.plot(kind="bar", figsize=(10, 6), title="Total Purchases per Month (Altairian Dollars)")
+    monthly_totals = df.groupby("month")["purchase"].sum()
+    monthly_totals.plot(kind="bar", figsize=(10, 6), title="Frequency of customers per month")
     plt.xlabel("Month")
-    plt.ylabel("Total Purchases")
+    plt.ylabel("Number of customers")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
 
     # Chart 2: Number of purchases per month
     monthly_counts = df.groupby("month")["price"].count()
-    monthly_counts.plot(kind="line", marker="o", figsize=(10, 6), title="Number of Purchases per Month")
-    plt.xlabel("Month")
-    plt.ylabel("Number of Purchases")
+    monthly_counts.plot(kind="line", marker="o", figsize=(10, 6), title="Sales per month")
+    plt.xlabel("month")
+    plt.ylabel("total sales in million of Altairian Dollars")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
 
     # Chart 3: Distribution of purchase prices
     df["price"].plot(kind="hist", bins=20, figsize=(10, 6), title="Distribution of Purchase Prices")
-    plt.xlabel("Price (Altairian Dollars)")
-    plt.ylabel("Frequency")
+    plt.xlabel("month")
+    plt.ylabel("Average spend/customer in Altairian Dollars")
     plt.tight_layout()
     plt.show()
 
