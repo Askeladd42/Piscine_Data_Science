@@ -51,12 +51,18 @@ def create_charts(df):
     """
     Create 3 charts based on the purchase data.
     """
-    # Chart 1: Total purchases per month
-    df["month"] = df["event_time"].dt.to_period("M")
-    monthly_totals = df.groupby("month")["purchase"].sum()
-    monthly_totals.plot(kind="bar", figsize=(10, 6), title="Frequency of customers per month")
+    # Chart 1: Number of customers per month
+    df["purchase"] = 1  # Create a column to count purchases
+    df["month"] = df["event_time"].dt.to_period("M")  # Extract month from event_time
+    df["month"] = df["month"].astype(str)  # Convert Period to string for plotting
+    df = df.groupby("month").agg({"purchase": "sum", "price": "mean"}).reset_index()
+    df["month"] = pd.to_datetime(df["month"])  # Convert month back to datetime for plotting
+    df["month"] = df["month"].dt.strftime('%Y-%m')  # Format month for better readability
+    # df["price"] = df["price"].round(2)  # Round price to 2 decimal places
+    df = df.sort_values("month")  # Sort by month for plotting
     plt.xlabel("Month")
     plt.ylabel("Number of customers")
+    df.plot(x="month", y="purchase", kind="bar", figsize=(10, 6), title="Number of Customers per Month")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
