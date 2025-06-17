@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 
 # Load environment variables from test.env
-load_dotenv("../../test.env")
+load_dotenv("/home/plam/sgoinfre/test.env")
 
 def fetch_customer_data():
     """
