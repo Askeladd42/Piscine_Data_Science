@@ -30,17 +30,19 @@ docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c \
 # Remove near-duplicate rows based on all columns except event_time
 # ctid is used to uniquely identify rows in PostgreSQL
 
-echo "Counting near-duplicate rows in table: $table_name"
+echo "Counting rows with near-duplicates (identical except event_time <= 1s apart) in table: $table_name"
 docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
 SELECT COUNT(*) FROM (
     SELECT
-        ROW_NUMBER() OVER (
-            PARTITION BY $columns, date_trunc('second', event_time)
+        *,
+        LAG(event_time) OVER (
+            PARTITION BY $columns
             ORDER BY event_time
-        ) AS rn
+        ) AS prev_event_time
     FROM \"$table_name\"
 ) t
-WHERE t.rn > 1;"
+WHERE prev_event_time IS NOT NULL
+  AND abs(EXTRACT(EPOCH FROM (event_time - prev_event_time))) <= 1;"
 
 # Prepare the COALESCE statement for handling ANY NULL-type values for patitioning
 echo "Preparing COALESCE statement for NULL handling in table: $table_name"
@@ -64,16 +66,15 @@ FROM information_schema.columns
 WHERE table_name = '$table_name' AND column_name <> 'event_time';
 ")
 
-echo "Removing near-duplicate rows from table: $table_name"
+echo "Removing strict duplicates (all columns including event_time)..."
 while :; do
     deleted=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "
         WITH to_delete AS (
-            SELECT ctid
-            FROM (
+            SELECT ctid FROM (
                 SELECT
                     ctid,
                     ROW_NUMBER() OVER (
-                        PARTITION BY $coalesce_columns, date_trunc('second', event_time)
+                        PARTITION BY $coalesce_columns, event_time
                         ORDER BY event_time
                     ) AS rn
                 FROM \"$table_name\"
@@ -84,14 +85,52 @@ while :; do
         DELETE FROM \"$table_name\" WHERE ctid IN (SELECT ctid FROM to_delete)
         RETURNING 1;
     " | grep '^1$' | wc -l)
-
-    if [ "$deleted" -eq 0 ]; then
-        echo "No more duplicates to delete."
-        break
-    else
-        echo "Deleted $deleted duplicate rows in this batch..."
-    fi
+    if [ "$deleted" -eq 0 ]; then break; fi
+    echo "Deleted $deleted strict duplicate rows in this batch..."
 done
+
+echo "Removing near-duplicates (identical except event_time < 1s apart)..."
+while :; do
+    deleted=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "
+        WITH to_delete AS (
+            SELECT ctid FROM (
+                SELECT
+                    ctid,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY $coalesce_columns
+                        ORDER BY event_time
+                    ) AS rn,
+                    event_time,
+                    LAG(event_time) OVER (
+                        PARTITION BY $coalesce_columns
+                        ORDER BY event_time
+                    ) AS prev_event_time
+                FROM \"$table_name\"
+            ) t
+            WHERE t.rn > 1 AND abs(EXTRACT(EPOCH FROM (event_time - prev_event_time))) <= 1
+            LIMIT $batch_size
+        )
+        DELETE FROM \"$table_name\" WHERE ctid IN (SELECT ctid FROM to_delete)
+        RETURNING 1;
+    " | grep '^1$' | wc -l)
+    if [ "$deleted" -eq 0 ]; then break; fi
+    echo "Deleted $deleted near-duplicate rows in this batch..."
+done
+
+# Final count of rows after deduplication
+echo "Counting rows with near-duplicates (identical except event_time <= 1s apart) in table: $table_name"
+docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "
+SELECT COUNT(*) FROM (
+    SELECT
+        *,
+        LAG(event_time) OVER (
+            PARTITION BY $columns
+            ORDER BY event_time
+        ) AS prev_event_time
+    FROM \"$table_name\"
+) t
+WHERE prev_event_time IS NOT NULL
+  AND abs(EXTRACT(EPOCH FROM (event_time - prev_event_time))) <= 1;"
 
 echo "All near-duplicate rows removed from table: $table_name"
 
