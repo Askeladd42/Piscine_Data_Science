@@ -35,7 +35,7 @@ if [ -n "$duplicates" ]; then
     echo "WARNING: duplicates product_id found in the items table:"
     echo "$duplicates"
 else
-    echo "Aucun doublon de product_id trouvé dans la table items."
+    echo "All product_id in the items table are unique."
 fi
 
 echo "Verifying if the duplicates in the items table have different values for category_id, category_code, and brand"
@@ -48,10 +48,9 @@ HAVING COUNT(*) > 1
 ")
 
 if [ -n "$diff_duplicates" ]; then
-    echo "ATTENTION : Certains product_id ont des valeurs différentes dans items !"
-    echo "$diff_duplicates"
+    echo "WARNING: Some duplicates in the items table have different values for category_id, category_code, and brand !"
 else
-    echo "Tous les doublons de product_id sont identiques sur toutes les colonnes."
+    echo "All duplicates in the items table have the same values for category_id, category_code, and brand."
 fi
 
 # Create a "temporary" table items_nodup to hold unique product_id entries
