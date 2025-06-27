@@ -26,7 +26,7 @@ for col in "category_id BIGINT" "category_code VARCHAR(255)" "brand VARCHAR(255)
     \$\$;"
 done
 
-echo "Verifying if the rows in the $table_name table are unique based on product_id"
+echo "Verifying if the rows in the items table are unique based on product_id"
 duplicates=$(docker exec -i "$DB_CONTAINER" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "
 SELECT product_id FROM items GROUP BY product_id HAVING COUNT(*) > 1;
 ")
