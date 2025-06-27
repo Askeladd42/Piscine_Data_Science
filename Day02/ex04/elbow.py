@@ -1,13 +1,14 @@
-import psycopg2
+import psycopg as pc
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans # maybe replaced later by a homemade method
-from sklearn.preprocessing import StandardScaler # maybe replaced later by a homemade method
+from sklearn.cluster import KMeans  # maybe replaced later by a homemade method
+from sklearn.preprocessing import StandardScaler  # same thing
 from dotenv import load_dotenv
 import os
 
 # Load environment variables from test.env
 load_dotenv("/home/plam/sgoinfre/test.env")
+
 
 def fetch_customer_data():
     """
@@ -15,7 +16,7 @@ def fetch_customer_data():
     """
     try:
         # Connect to the database
-        connection = psycopg2.connect(
+        connection = pc.connect(
             host=os.getenv("POSTGRES_HOST"),  # Database host
             port=os.getenv("POSTGRES_PORT"),  # Database port
             database=os.getenv("POSTGRES_DB"),  # Database name
@@ -35,7 +36,9 @@ def fetch_customer_data():
         results = cursor.fetchall()
 
         # Convert results to a DataFrame
-        df = pd.DataFrame(results, columns=["user_id", "order_count", "total_spent"])
+        df = pd.DataFrame(
+            results, columns=["user_id", "order_count", "total_spent"]
+            )
         return df
 
     except Exception as e:
@@ -47,6 +50,7 @@ def fetch_customer_data():
             cursor.close()
             connection.close()
 
+
 def elbow_method(data):
     """
     Perform the Elbow Method to determine the optimal number of clusters.
@@ -55,7 +59,8 @@ def elbow_method(data):
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data)
 
-    # Calculate the Within-Cluster-Sum-of-Squares (WCSS) for different cluster counts
+    # Calculate the Within-Cluster-Sum-of-Squares (WCSS)
+    # for different cluster counts
     wcss = []
     for k in range(1, 11):  # Test cluster counts from 1 to 10
         kmeans = KMeans(n_clusters=k, random_state=42)
@@ -71,6 +76,7 @@ def elbow_method(data):
     plt.xticks(range(1, 11))
     plt.grid()
     plt.show()
+
 
 if __name__ == "__main__":
     # Fetch customer data

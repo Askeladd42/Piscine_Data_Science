@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg as pc
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
@@ -9,13 +9,14 @@ import os
 # Load environment variables from test.env
 load_dotenv("/home/plam/sgoinfre/test.env")
 
+
 def fetch_customer_data():
     """
     Connect to the PostgreSQL database and fetch customer data.
     """
     try:
         # Connect to the database using environment variables
-        connection = psycopg2.connect(
+        connection = pc.connect(
             host=os.getenv("POSTGRES_HOST"),  # Database host
             port=os.getenv("POSTGRES_PORT"),  # Database port
             database=os.getenv("POSTGRES_DB"),  # Database name
@@ -35,7 +36,9 @@ def fetch_customer_data():
         results = cursor.fetchall()
 
         # Convert results to a DataFrame
-        df = pd.DataFrame(results, columns=["user_id", "order_count", "total_spent"])
+        df = pd.DataFrame(
+            results, columns=["user_id", "order_count", "total_spent"]
+            )
         return df
 
     except Exception as e:
@@ -46,6 +49,7 @@ def fetch_customer_data():
         if connection:
             cursor.close()
             connection.close()
+
 
 def perform_clustering(data, n_clusters=4):
     """
@@ -63,6 +67,7 @@ def perform_clustering(data, n_clusters=4):
     data["cluster"] = clusters
     return data, kmeans
 
+
 def visualize_clusters(data):
     """
     Create visualizations for the customer clusters.
@@ -71,7 +76,11 @@ def visualize_clusters(data):
     plt.figure(figsize=(10, 6))
     for cluster in data["cluster"].unique():
         cluster_data = data[data["cluster"] == cluster]
-        plt.scatter(cluster_data["order_count"], cluster_data["total_spent"], label=f"Cluster {cluster}")
+        plt.scatter(
+            cluster_data["order_count"],
+            cluster_data["total_spent"],
+            label=f"Cluster {cluster}"
+            )
     plt.title("Customer Clusters: Total Spent vs. Order Count")
     plt.xlabel("Order Count")
     plt.ylabel("Total Spent (Altairian Dollars)")
@@ -89,6 +98,7 @@ def visualize_clusters(data):
     plt.grid()
     plt.show()
 
+
 if __name__ == "__main__":
     # Fetch customer data
     customer_data = fetch_customer_data()
@@ -99,7 +109,9 @@ if __name__ == "__main__":
         numerical_data = customer_data[["order_count", "total_spent"]]
 
         # Perform clustering
-        clustered_data, kmeans_model = perform_clustering(numerical_data, n_clusters=4)
+        clustered_data, kmeans_model = perform_clustering(
+            numerical_data, n_clusters=4
+            )
 
         # Visualize the clusters
         visualize_clusters(clustered_data)

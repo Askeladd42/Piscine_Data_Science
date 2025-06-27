@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg as pc
 import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -7,13 +7,14 @@ import os
 # Load environment variables from .env file
 load_dotenv("/home/plam/sgoinfre/test.env")
 
+
 def fetch_purchase_data():
     """
     Connect to the PostgreSQL database and fetch purchase data.
     """
     try:
         # Connect to the database
-        connection = psycopg2.connect(
+        connection = pc.connect(
             host=os.getenv("POSTGRES_HOST"),  # Database host
             port=os.getenv("POSTGRES_PORT"),  # Database port
             database=os.getenv("POSTGRES_DB"),  # Database name
@@ -44,6 +45,7 @@ def fetch_purchase_data():
             cursor.close()
             connection.close()
 
+
 def calculate_statistics(df):
     """
     Calculate and print statistics for the price column.
@@ -65,15 +67,21 @@ def calculate_statistics(df):
     print(f"Second Quartile (Q2/Median): {q2}")
     print(f"Third Quartile (Q3): {q3}")
 
+
 def create_box_plot(df):
     """
     Create a box plot for the price column.
     """
     plt.figure(figsize=(8, 6))
-    plt.boxplot(df["price"], vert=False, patch_artist=True, boxprops=dict(facecolor="lightblue"))
+    plt.boxplot(
+        df["price"], vert=False, patch_artist=True, boxprops=dict(
+            facecolor="lightblue"
+            )
+        )
     plt.title("Box Plot of Item Prices")
     plt.xlabel("Price (Altairian Dollars)")
     plt.show()
+
 
 if __name__ == "__main__":
     # Fetch purchase data

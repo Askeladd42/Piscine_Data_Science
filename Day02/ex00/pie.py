@@ -1,10 +1,11 @@
-import psycopg2
+import psycopg as pc
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 import os
 
 # Load environment variables from test.env
 load_dotenv("/home/plam/sgoinfre/test.env")
+
 
 def pie_chart(data, labels):
     """
@@ -32,7 +33,7 @@ def fetch_data():
     """
     try:
         # Connect to the database
-        connection = psycopg2.connect(
+        connection = pc.connect(
             host=os.getenv("POSTGRES_HOST"),  # Database host
             port=os.getenv("POSTGRES_PORT"),  # Database port
             database=os.getenv("POSTGRES_DB"),  # Database name
@@ -43,8 +44,8 @@ def fetch_data():
 
         # Query to count user actions
         query = """
-        SELECT event_type, COUNT(*) 
-        FROM customers 
+        SELECT event_type, COUNT(*)
+        FROM customers
         WHERE event_type IN ('view', 'cart', 'remove_from_cart', 'purchase')
         GROUP BY event_type;
         """

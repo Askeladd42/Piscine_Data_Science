@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg as pc
 import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -7,13 +7,15 @@ import os
 # Load environment variables from .env file
 load_dotenv("/home/plam/sgoinfre/test.env")
 
+
 def fetch_purchase_data():
     """
-    Connect to the PostgreSQL database and fetch purchase data for the specified time range.
+    Connect to the PostgreSQL database and fetch purchase data for the
+    specified time range.
     """
     try:
         # Connect to the database
-        connection = psycopg2.connect(
+        connection = pc.connect(
             host=os.getenv("POSTGRES_HOST"),  # Database host
             port=os.getenv("POSTGRES_PORT"),  # Database port
             database=os.getenv("POSTGRES_DB"),  # Database name
@@ -34,7 +36,7 @@ def fetch_purchase_data():
 
         # Convert results to a DataFrame
         df = pd.DataFrame(results, columns=["event_time", "price"])
-        df["event_time"] = pd.to_datetime(df["event_time"])  # Ensure event_time is a datetime object
+        df["event_time"] = pd.to_datetime(df["event_time"])
         return df
 
     except Exception as e:
@@ -54,7 +56,9 @@ def create_charts(df):
     # Chart 1: Number of customers per month with a line chart
     monthly_customers = df.groupby("month")["purchase"].sum().reset_index()
     plt.figure(figsize=(10, 6))
-    plt.plot(monthly_customers["month"], monthly_customers["purchase"], marker="o")
+    plt.plot(
+        monthly_customers["month"], monthly_customers["purchase"], marker="o"
+    )
     plt.xlabel("Month")
     plt.ylabel("Number of customers")
     plt.title("Number of Customers per Month")

@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg as pc
 import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -7,13 +7,14 @@ import os
 # Load environment variables from .env file
 load_dotenv("/home/plam/sgoinfre/test.env")
 
+
 def fetch_order_data():
     """
     Connect to the PostgreSQL database and fetch order data.
     """
     try:
         # Connect to the database
-        connection = psycopg2.connect(
+        connection = pc.connect(
             host=os.getenv("POSTGRES_HOST"),  # Database host
             port=os.getenv("POSTGRES_PORT"),  # Database port
             database=os.getenv("POSTGRES_DB"),  # Database name
@@ -33,7 +34,9 @@ def fetch_order_data():
         results = cursor.fetchall()
 
         # Convert results to a DataFrame
-        df = pd.DataFrame(results, columns=["user_id", "order_count", "total_spent"])
+        df = pd.DataFrame(results, columns=[
+            "user_id", "order_count", "total_spent"
+            ])
         return df
 
     except Exception as e:
@@ -45,13 +48,16 @@ def fetch_order_data():
             cursor.close()
             connection.close()
 
+
 def create_bar_charts(df):
     """
     Create bar charts for the number of orders and Altairian Dollars spent.
     """
     # Bar chart: Number of orders by frequency
     plt.figure(figsize=(10, 6))
-    df["order_count"].value_counts().sort_index().plot(kind="bar", color="skyblue")
+    df["order_count"].value_counts().sort_index().plot(
+        kind="bar", color="skyblue"
+        )
     plt.title("Number of Orders by Frequency")
     plt.xlabel("Number of Orders")
     plt.ylabel("Frequency")
@@ -68,6 +74,7 @@ def create_bar_charts(df):
     plt.tight_layout()
     plt.show()
 
+
 if __name__ == "__main__":
     # Fetch order data
     order_data = fetch_order_data()
@@ -78,3 +85,4 @@ if __name__ == "__main__":
         create_bar_charts(order_data)
     else:
         print("No order data available.")
+
