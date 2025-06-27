@@ -17,10 +17,19 @@ def pie_chart(data, labels):
     """
     # Create a pie chart
     plt.figure(figsize=(8, 8))
-    plt.pie(data, labels=labels, autopct='%1.1f%%', startangle=140)
+    plt.axis('equal')
+    plt.tight_layout()  # Adjust layout to prevent clipping of pie chart
+    pastel_colors = ['#35618f', '#e59427', '#4fa64f', '#c94c4c']
+    plt.pie(
+        data,
+        labels=labels,
+        autopct='%1.1f%%',
+        startangle=0,
+        wedgeprops={'edgecolor': 'white', 'linewidth': 2},
+        colors=pastel_colors[:len(labels)]
+        )
 
     # Equal aspect ratio ensures that pie is drawn as a circle
-    plt.axis('equal')
     plt.title('User Actions on the Site')
 
     # Show the plot
@@ -31,14 +40,16 @@ def fetch_data():
     """
     Connect to the PostgreSQL database and fetch data for the pie chart.
     """
+    connection = None
+    cursor = None
     try:
         # Connect to the database
         connection = pc.connect(
-            host=os.getenv("POSTGRES_HOST"),  # Database host
-            port=os.getenv("POSTGRES_PORT"),  # Database port
-            database=os.getenv("POSTGRES_DB"),  # Database name
-            user=os.getenv("POSTGRES_USER"),  # Database user
-            password=os.getenv("POSTGRES_PASSWORD")  # Database password
+            host="localhost",
+            port="5432",
+            dbname=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD")
         )
         cursor = connection.cursor()
 
@@ -52,9 +63,11 @@ def fetch_data():
         cursor.execute(query)
         results = cursor.fetchall()
 
-        # Process the results
-        labels = [row[0] for row in results]
-        data = [row[1] for row in results]
+        # Order to display in the pie chart
+        desired_order = ['view', 'cart', 'remove_from_cart', 'purchase']
+        data_dict = dict(results)
+        data = [data_dict.get(label, 0) for label in desired_order]
+        labels = desired_order
 
         return data, labels
 
@@ -63,8 +76,9 @@ def fetch_data():
         return [], []
 
     finally:
-        if connection:
+        if cursor is not None:
             cursor.close()
+        if connection is not None:
             connection.close()
 
 

@@ -17,11 +17,11 @@ def fetch_customer_data():
     try:
         # Connect to the database using environment variables
         connection = pc.connect(
-            host=os.getenv("POSTGRES_HOST"),  # Database host
-            port=os.getenv("POSTGRES_PORT"),  # Database port
-            database=os.getenv("POSTGRES_DB"),  # Database name
-            user=os.getenv("POSTGRES_USER"),  # Database user
-            password=os.getenv("POSTGRES_PASSWORD")  # Database password
+            host="localhost",
+            port="5432",
+            dbname=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD")
         )
         cursor = connection.cursor()
 
