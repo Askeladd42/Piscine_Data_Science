@@ -6,7 +6,7 @@ source /home/plam/sgoinfre/test.env    # Adjust the path to your .env file
 set +o allexport
 
 # Directory containing the CSV files
-CSV_DIR="../../../subject/customer"    # Adjust the path to your CSV files
+CSV_DIR="/home/plam/sgoinfre/subject/customer"    # Adjust the path to your CSV files
 
 # Database container name
 DB_CONTAINER="postgres_db"
