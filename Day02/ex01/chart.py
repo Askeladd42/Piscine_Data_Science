@@ -72,18 +72,25 @@ def create_charts(df):
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))  # Month format
     plt.xticks(rotation=45)
+    plt.xlim(daily_customers["day"].min(), daily_customers["day"].max())
     plt.tight_layout()
     plt.show()
 
-    # Chart 2: Total sales by day (bar chart)
-    df["month"] = pd.to_datetime(df["day"]).dt.to_period("M").astype(str)
+        # Chart 2: Total sales by month (bar chart)
+    df["month"] = pd.to_datetime(df["day"]).dt.to_period("M")
     monthly_sales = df.groupby("month")["price"].sum().reset_index()
+    # Convert 'month' to datetime for plotting
+    monthly_sales["month_start"] = monthly_sales["month"].dt.to_timestamp()
     plt.figure(figsize=(10, 6))
-    plt.bar(monthly_sales["month"], monthly_sales["price"], color="#35618f")
+    plt.bar(monthly_sales["month_start"], monthly_sales["price"], color="#35618f", width=20)
     plt.xlabel("Month")
     plt.ylabel("Total sales")
     plt.title("Total Sales per Month")
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     plt.xticks(rotation=45)
+    plt.xlim(monthly_sales["month_start"].min(), monthly_sales["month_start"].max())
     plt.tight_layout()
     plt.show()
 
@@ -112,6 +119,7 @@ def create_charts(df):
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     plt.xticks(rotation=45)
+    plt.xlim(average_spending["day"].min(), average_spending["day"].max())
     plt.tight_layout()
     plt.show()
 
