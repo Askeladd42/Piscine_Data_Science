@@ -1,6 +1,7 @@
 import psycopg as pc
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from dotenv import load_dotenv
 import os
 
@@ -26,18 +27,18 @@ def fetch_purchase_data():
 
         # Query to fetch purchase data from October 2022 to February 2023
         query = """
-        SELECT event_time, price
-        FROM customers
-        WHERE event_type = 'purchase'
-        AND event_time BETWEEN '2022-10-01' AND '2023-02-28';
+            SELECT event_time, price, user_id
+            FROM customers
+            WHERE event_type = 'purchase'
+            AND event_time BETWEEN '2022-10-01' AND '2023-02-28';
         """
         cursor.execute(query)
         results = cursor.fetchall()
 
         # Convert results to a DataFrame, including month extraction
-        df = pd.DataFrame(results, columns=["event_time", "price"])
+        df = pd.DataFrame(results, columns=["event_time", "price", "user_id"])
         df["event_time"] = pd.to_datetime(df["event_time"])
-        df["month"] = df["event_time"].dt.to_period("M").astype(str)
+        df["day"] = df["event_time"].dt.date.astype(str)
         return df
 
     except Exception as e:
@@ -54,23 +55,29 @@ def create_charts(df):
     """
     Create 3 charts based on the purchase data.
     """
-    # Chart 1: Nombre d'achats par mois (line chart)
-    monthly_purchases = df.groupby("month")["price"].count().reset_index()
-    plt.figure(figsize=(10, 6))
+    # Chart 1: number of unique customers per day (line chart)
+    daily_customers = df.groupby("day")["user_id"].nunique().reset_index()
+    daily_customers = daily_customers.sort_values("day")
+
+    plt.figure(figsize=(12, 6))
     plt.plot(
-        monthly_purchases["month"], monthly_purchases["price"], marker="o"
+        daily_customers["day"],
+        daily_customers["user_id"],
     )
     plt.xlabel("Month")
-    plt.ylabel("Number of purchases")
-    plt.title("Number of Purchases per Month")
+    plt.ylabel("Number of customers")
+    plt.title("Number of customers per month")
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))  # Month format
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
 
-    # Chart 2: Total des ventes par mois (bar chart)
-    monthly_sales = df.groupby("month")["price"].sum().reset_index()
+    # Chart 2: Total sales by day (bar chart)
+    daily_sales = df.groupby("day")["price"].sum().reset_index()
     plt.figure(figsize=(10, 6))
-    plt.bar(monthly_sales["month"], monthly_sales["price"])
+    plt.bar(daily_sales["Month"], daily_sales["price"])
     plt.xlabel("Month")
     plt.ylabel("Total sales")
     plt.title("Total Sales per Month")
@@ -78,16 +85,30 @@ def create_charts(df):
     plt.tight_layout()
     plt.show()
 
-    # Chart 3: Distribution des prix d'achat par mois (stacked area)
-    df["price"] = df["price"].round(2)
-    price_bins = pd.cut(df["price"], bins=10)
-    stacked = df.groupby(["month", price_bins]).size().unstack(fill_value=0)
-    stacked = stacked.sort_index()
+    # Chart 3: Average spending per customer per day (area chart)
+    average_spending = df.groupby("day").agg(
+        price=("price", "mean"),
+        user_id=("user_id", "nunique")
+    ).reset_index()
+    average_spending["day"] = pd.to_datetime(average_spending["day"])
     plt.figure(figsize=(10, 6))
-    stacked.plot(kind="area", stacked=True, colormap="tab20", alpha=0.7)
+    plt.fill_between(
+        average_spending["day"],
+        average_spending["price"],
+        color="#6baed6",
+        alpha=0.7
+    )
+    plt.plot(
+        average_spending["day"],
+        average_spending["price"],
+        color="#35618f",
+    )
     plt.xlabel("Month")
-    plt.ylabel("Number of purchases")
-    plt.title("Stacked Area Chart: Distribution of Purchase Prices by Month")
+    plt.ylabel("Average spend/customers in A")
+    plt.title("Area Chart: Average Spend/Customer per Month")
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
