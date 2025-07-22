@@ -50,27 +50,29 @@ def calculate_statistics(df):
     """
     Calculate and print statistics for the price column.
     """
+    count = df["price"].count()
     mean = df["price"].mean()
-    median = df["price"].median()
+    std = df["price"].std()
     min_price = df["price"].min()
-    max_price = df["price"].max()
     q1 = df["price"].quantile(0.25)
     q2 = df["price"].quantile(0.50)  # Same as median
     q3 = df["price"].quantile(0.75)
+    max_price = df["price"].max()
 
-    print("Statistics for item prices:")
-    print(f"Mean: {mean}")
-    print(f"Median: {median}")
-    print(f"Min: {min_price}")
-    print(f"Max: {max_price}")
-    print(f"First Quartile (Q1): {q1}")
-    print(f"Second Quartile (Q2/Median): {q2}")
-    print(f"Third Quartile (Q3): {q3}")
+    print(f"count        {float(count):.6f}")
+    print(f"mean         {float(mean):.6f}")
+    print(f"std          {float(std):.6f}")
+    print(f"min          {float(min_price):.6f}")
+    print(f"25%          {float(q1):.6f}")
+    print(f"50%          {float(q2):.6f}")
+    print(f"75%          {float(q3):.6f}")
+    print(f"max          {float(max_price):.6f}")
 
 
 def create_box_plot(df):
     """
-    Create a box plot for the price column.
+    Create a box plot for the price column, a zoomed-in version and
+    a box plot of the average basket price per user.
     """
     plt.figure(figsize=(8, 6))
     plt.boxplot(
@@ -78,8 +80,48 @@ def create_box_plot(df):
             facecolor="lightblue"
             )
         )
-    plt.title("Box Plot of Item Prices")
-    plt.xlabel("Price (Altairian Dollars)")
+    plt.title("Box plot of the price of the items purchased")
+    plt.xlabel("price")
+    plt.show()
+
+    # Create a zoomed-in box plot
+    q1 = df["price"].quantile(0.25)
+    q3 = df["price"].quantile(0.75)
+    iqr = q3 - q1
+    lower = max(df["price"].min(), q1 - 1.5 * iqr)
+    upper = min(df["price"].max(), q3 + 1.5 * iqr)
+
+    plt.figure(figsize=(8, 6))
+    plt.boxplot(
+        df["price"], vert=False, patch_artist=True, boxprops=dict(
+            facecolor="lightgreen"
+        )
+    )
+    plt.xlabel("price")
+    plt.xlim(lower, upper)
+    plt.show()
+
+    # Calculate average basket price per user
+    df["user_id"] = 1  # Assuming all purchases are from the same user
+    avg_basket_price = df.groupby("user_id")["price"].mean().reset_index()
+
+    q1 = avg_basket_price["price"].quantile(0.25)
+    q3 = avg_basket_price["price"].quantile(0.75)
+    iqr = q3 - q1
+    lower = max(avg_basket_price["price"].min(), q1 - 1.5 * iqr)
+    upper = min(avg_basket_price["price"].max(), q3 + 1.5 * iqr)
+
+    plt.figure(figsize=(8, 6))
+    plt.boxplot(
+        avg_basket_price["price"],
+        vert=False, patch_artist=True,
+        boxprops=dict(
+            facecolor="orange"
+        )
+    )
+    plt.title("Box plot of the average basket price per user")
+    plt.xlabel("Average basket price")
+    plt.xlim(lower, upper)
     plt.show()
 
 
@@ -92,7 +134,7 @@ if __name__ == "__main__":
         # Calculate and print statistics
         calculate_statistics(purchase_data)
 
-        # Create a box plot
+        # Create the box plots
         create_box_plot(purchase_data)
     else:
         print("No purchase data available.")
