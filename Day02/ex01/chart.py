@@ -57,6 +57,7 @@ def create_charts(df):
     """
     # Chart 1: number of unique customers per day (line chart)
     daily_customers = df.groupby("day")["user_id"].nunique().reset_index()
+    daily_customers["day"] = pd.to_datetime(daily_customers["day"])
     daily_customers = daily_customers.sort_values("day")
 
     plt.figure(figsize=(12, 6))
@@ -75,9 +76,10 @@ def create_charts(df):
     plt.show()
 
     # Chart 2: Total sales by day (bar chart)
-    daily_sales = df.groupby("day")["price"].sum().reset_index()
+    df["month"] = pd.to_datetime(df["day"]).dt.to_period("M").astype(str)
+    monthly_sales = df.groupby("month")["price"].sum().reset_index()
     plt.figure(figsize=(10, 6))
-    plt.bar(daily_sales["Month"], daily_sales["price"])
+    plt.bar(monthly_sales["month"], monthly_sales["price"], color="#35618f")
     plt.xlabel("Month")
     plt.ylabel("Total sales")
     plt.title("Total Sales per Month")
