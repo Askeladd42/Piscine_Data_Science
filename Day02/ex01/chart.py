@@ -76,13 +76,18 @@ def create_charts(df):
     plt.tight_layout()
     plt.show()
 
-        # Chart 2: Total sales by month (bar chart)
+    # Chart 2: Total sales by month (bar chart)
     df["month"] = pd.to_datetime(df["day"]).dt.to_period("M")
     monthly_sales = df.groupby("month")["price"].sum().reset_index()
     # Convert 'month' to datetime for plotting
     monthly_sales["month_start"] = monthly_sales["month"].dt.to_timestamp()
     plt.figure(figsize=(10, 6))
-    plt.bar(monthly_sales["month_start"], monthly_sales["price"], color="#35618f", width=20)
+    plt.bar(
+        monthly_sales["month_start"],
+        monthly_sales["price"],
+        color="#35618f",
+        width=20
+    )
     plt.xlabel("Month")
     plt.ylabel("Total sales")
     plt.title("Total Sales per Month")
@@ -90,7 +95,6 @@ def create_charts(df):
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     plt.xticks(rotation=45)
-    plt.xlim(monthly_sales["month_start"].min(), monthly_sales["month_start"].max())
     plt.tight_layout()
     plt.show()
 
