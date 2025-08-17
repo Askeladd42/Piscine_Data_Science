@@ -85,31 +85,29 @@ def create_box_plot(df):
     plt.show()
 
     # Create a zoomed-in box plot
-    q1 = df["price"].quantile(0.25)
-    q3 = df["price"].quantile(0.75)
-    iqr = q3 - q1
-    lower = max(df["price"].min(), q1 - 1.5 * iqr)
-    upper = min(df["price"].max(), q3 + 1.5 * iqr)
-
-    plt.figure(figsize=(8, 6))
+    plt.figure(
+        figsize=(8, 6)  # Adjust height to reduce space above and below
+    )
     plt.boxplot(
         df["price"], vert=False, patch_artist=True, boxprops=dict(
             facecolor="lightgreen"
         )
     )
     plt.xlabel("price")
-    plt.xlim(lower, upper)
+    plt.xlim(-1, 12)
+    plt.ylim(0.9, 1.1)
     plt.show()
 
-    # Calculate average basket price per user
-    df["user_id"] = 1  # Assuming all purchases are from the same user
-    avg_basket_price = df.groupby("user_id")["price"].mean().reset_index()
+    # Filter only purchase events
+    if "event_type" in df.columns:
+        df = df[df["event_type"] == "purchase"]
 
-    q1 = avg_basket_price["price"].quantile(0.25)
-    q3 = avg_basket_price["price"].quantile(0.75)
-    iqr = q3 - q1
-    lower = max(avg_basket_price["price"].min(), q1 - 1.5 * iqr)
-    upper = min(avg_basket_price["price"].max(), q3 + 1.5 * iqr)
+    # Ensure user_id exists in the DataFrame
+    if "user_id" not in df.columns:
+        df["user_id"] = 1  # Assign a default user_id if missing
+
+    # Calculate average basket price per user
+    avg_basket_price = df.groupby("user_id")["price"].mean().reset_index()
 
     plt.figure(figsize=(8, 6))
     plt.boxplot(
@@ -121,7 +119,7 @@ def create_box_plot(df):
     )
     plt.title("Box plot of the average basket price per user")
     plt.xlabel("Average basket price")
-    plt.xlim(lower, upper)
+    plt.ylim(0.9, 1.1)
     plt.show()
 
 
