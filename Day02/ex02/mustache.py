@@ -78,8 +78,8 @@ def create_box_plot(df):
     plt.boxplot(
         df["price"], vert=False, patch_artist=True, boxprops=dict(
             facecolor="lightblue"
-            )
-        )
+        ), showfliers=False
+    )
     plt.title("Box plot of the price of the items purchased")
     plt.xlabel("price")
     plt.show()
@@ -91,7 +91,7 @@ def create_box_plot(df):
     plt.boxplot(
         df["price"], vert=False, patch_artist=True, boxprops=dict(
             facecolor="lightgreen"
-        )
+        ), showfliers=False
     )
     plt.xlabel("price")
     plt.xlim(-1, 12)
@@ -107,11 +107,20 @@ def create_box_plot(df):
         df["user_id"] = 1  # Assign a default user_id if missing
 
     # Calculate average basket price per user
-    avg_basket_price = df.groupby("user_id")["price"].mean().reset_index()
+    avg_basket_price_per_user = df.groupby("user_id")["price"].mean()
+
+    # Calculate the average of these averages
+    overall_avg_basket_price = avg_basket_price_per_user.mean()
+
+    # Create a DataFrame for plotting
+    avg_basket_price_df = pd.DataFrame({
+        "user_id": avg_basket_price_per_user.index,
+        "avg_price": avg_basket_price_per_user.values
+    })
 
     plt.figure(figsize=(8, 6))
     plt.boxplot(
-        avg_basket_price["price"],
+        avg_basket_price_df["avg_price"],
         vert=False, patch_artist=True,
         boxprops=dict(
             facecolor="orange"
@@ -121,6 +130,8 @@ def create_box_plot(df):
     plt.xlabel("Average basket price")
     plt.ylim(0.9, 1.1)
     plt.show()
+
+    print(f"Overall average basket price: {overall_avg_basket_price:.2f}")
 
 
 if __name__ == "__main__":
