@@ -53,24 +53,35 @@ def create_bar_charts(df):
     """
     Create bar charts for the number of orders and Altairian Dollars spent.
     """
-    # Bar chart: Number of orders by frequency
+    # Bar chart: Number of orders (customers in y)
+    # according to the frequency (in x)
     plt.figure(figsize=(10, 6))
-    df["order_count"].value_counts().sort_index().plot(
-        kind="bar", color="skyblue"
-        )
-    plt.title("Number of Orders by Frequency")
-    plt.xlabel("Number of Orders")
-    plt.ylabel("Frequency")
-    plt.xticks(rotation=0)
+    order_frequency = df["order_count"].value_counts().sort_index()
+    plt.bar(order_frequency.index, order_frequency.values, color="skyblue")
+    plt.title("Number of Orders according to the Frequency")
+    plt.xlabel("Frequency")
+    plt.ylabel("Customers")
+    plt.xticks(range(0, int(order_frequency.index.max()) + 10, 10))
+    plt.xlim(0, 40)
+    plt.yticks(range(0, int(order_frequency.values.max()) + 10000, 10000))
     plt.tight_layout()
     plt.show()
 
-    # Bar chart: Altairian Dollars spent by customers
+    # Bar chart: Number of customers by monetary value spent
     plt.figure(figsize=(10, 6))
-    df["total_spent"].plot(kind="bar", color="lightgreen")
-    plt.title("Altairian Dollars Spent by Customers")
-    plt.xlabel("Customer Index")
-    plt.ylabel("Total Spent (Altairian Dollars)")
+    monetary_value = df.groupby("total_spent")["user_id"].count().reset_index()
+    monetary_value.columns = ["total_spent", "customer_count"]
+    plt.bar(
+        monetary_value["total_spent"],
+        monetary_value["customer_count"],
+        color="skyblue"
+    )
+    plt.title("Number of Customers by Monetary Value Spent")
+    plt.xlabel("Monetary Value (Altairian Dollars)")
+    plt.ylabel("Number of Customers")
+    plt.xticks(range(0, 221, 50))
+    plt.xlim(0, 220)
+    plt.yticks(range(0, monetary_value["customer_count"].max() + 5000, 5000))
     plt.tight_layout()
     plt.show()
 
